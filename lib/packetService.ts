@@ -9,7 +9,7 @@ export const registerResi = (resi: string) =>
 );
 
 export const getPacketByResi = async (resiId: string) => {
-  const res = await fetch(`http://localhost:3000/packets/${resiId}`);
+  const res = await fetch(`${API_URL}/packets/${resiId}`);
   const data = await res.json();
 
   if (!res.ok || data.status !== "success") {
@@ -18,7 +18,6 @@ export const getPacketByResi = async (resiId: string) => {
 
   return data.data;
 };
-
 
 export const getTotalPackets = async (): Promise<number> => {
   const res = await fetch(`${API_URL}/packets/total`);
@@ -71,7 +70,7 @@ export const updatePacket = async (
 };
 
 export async function deletePacket(id: number) {
-  const res = await fetch(`http://localhost:3000/packets/${id}`, {
+  const res = await fetch(`${API_URL}/packets/${id}`, {
     method: "DELETE",
   });
 
