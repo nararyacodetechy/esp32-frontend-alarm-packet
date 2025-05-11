@@ -20,8 +20,9 @@ export default function PacketDetail() {
 
   const [packet, setPacket] = useState<Packet | null>(null);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("Tidak diketahui");
+  const [status, setStatus] = useState("Unknown");
   const [error, setError] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
@@ -46,7 +47,7 @@ export default function PacketDetail() {
         });
         setError("");
       } catch (err) {
-        setError("Gagal menghubungi server.");
+        setError("Failed to contact server, please check your internet connection!");
       } finally {
         setLoading(false);
       }
@@ -64,7 +65,7 @@ export default function PacketDetail() {
       const text = await res.text();
       setStatus(successText || text);
     } catch {
-      setStatus("Gagal melakukan aksi.");
+      setStatus("Failed to perform action.");
     }
   };
   
@@ -72,39 +73,44 @@ export default function PacketDetail() {
     if (!packet) return;
     try {
       await updatePacket(packet.id, form);
-      toast.success("✅ Paket berhasil diperbarui");
+      toast.success("✅ Packet successfully updated");
       setPacket({ ...packet, ...form });
       setIsEditing(false);
     } catch (err) {
-      setStatus("❌ Gagal memperbarui paket");
+      setStatus("❌ Failed to update packet");
     }
   };
 
   const handleDelete = async () => {
     if (!packet) return;
   
-    const confirmDelete = confirm("Yakin ingin menghapus paket ini?");
+    const confirmDelete = confirm("Are you sure you want to delete this package?");
     if (!confirmDelete) return;
   
     try {
+      setIsNavigating(true);
       await deletePacket(packet.id);
-      toast.success("✅ Paket berhasil dihapus");
-      router.push("/"); // Ganti path sesuai halaman list kamu
+      toast.success("✅ Packet successfully deleted");
+      await router.push("/"); // menunggu push selesai
     } catch (err) {
-      toast.error("❌ Gagal menghapus paket");
+      toast.error("❌ Failed to remove packet");
+    } finally {
+      setIsNavigating(false);
     }
   };
   
 
   const getStatusClass = (status: string) => {
-    if (status.includes("nyala") || status.toLowerCase().includes("dinya")) {
+    const lowerStatus = status.toLowerCase();
+  
+    if (lowerStatus.includes("on") || lowerStatus.includes("activated")) {
       return "bg-green-100 text-green-700";
-    } else if (status.includes("mati") || status.toLowerCase().includes("dimatikan")) {
+    } else if (lowerStatus.includes("off") || lowerStatus.includes("deactivated")) {
       return "bg-red-100 text-red-700";
     } else {
       return "bg-gray-200 text-gray-700";
     }
-  };
+  };  
 
   const handleBack = () => {
     router.back();
@@ -112,110 +118,120 @@ export default function PacketDetail() {
 
   return (
     <Layout>
-      <div className="w-full max-w-xl mx-auto px-4 py-6 text-black">
+      <div className="w-full max-w-xl pt-16 pb-16 h-screen mx-auto text-black flex flex-col relative">
 
         <Toaster position="top-right" reverseOrder={false} />
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5 bg-white sticky top-0 z-10 py-4">
           <div className="flex items-center">
-            <button onClick={handleBack} className="mr-4" aria-label="Kembali">
-              <ArrowLeft className="w-6 h-6 text-blue-600" />
+            <button onClick={handleBack} className="mr-3" aria-label="Back">
+              <ArrowLeft className="w-6 h-6 text-gray-700" />
             </button>
-            <h2 className="text-xl font-semibold text-gray-800">Detail Paket</h2>
+            <h2 className="text-lg font-semibold text-gray-700">Packet Details</h2>
           </div>
           <span className={`text-sm px-3 py-1 rounded-full ${getStatusClass(status)}`}>
             {status}
           </span>
         </div>
 
-        {loading ? (
-          <p>Memuat detail paket...</p>
-        ) : error ? (
-          <div className="text-red-600">❌ {error}</div>
-        ) : (
-          <div className="bg-white rounded-xl shadow p-6 space-y-4">
-            {["resi", "customer_name", "address", "order"].map((field) => (
-              <div key={field}>
-                <label className="font-semibold capitalize">{field.replace("_", " ")}:</label>
+
+        <div className="overflow-y-auto flex-grow px-1 pb-6">
+          {loading ? (
+            <p>Loading packet Details...</p>
+          ) : error ? (
+            <div className="text-red-600">❌ {error}</div>
+          ) : (
+            <div className="bg-white space-y-4">
+              {["resi", "customer_name", "address", "order"].map((field) => {
+                const label =
+                  field === "resi"
+                    ? "Receipt Number"
+                    : field.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+                return (
+                  <div key={field}>
+                    <label className="font-semibold">{label}:</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        className="w-full mt-1 p-2 border rounded"
+                        value={form[field as keyof typeof form]}
+                        onChange={(e) =>
+                          setForm({ ...form, [field]: e.target.value })
+                        }
+                      />
+                    ) : (
+                      <p>{packet?.[field as keyof Packet]}</p>
+                    )}
+                  </div>
+                );
+              })}
+
+
+              <div className="flex justify-between pt-0 pb-6">
                 {isEditing ? (
-                  <input
-                    type="text"
-                    className="w-full mt-1 p-2 border rounded"
-                    value={form[field as keyof typeof form]}
-                    onChange={(e) =>
-                      setForm({ ...form, [field]: e.target.value })
-                    }
-                  />
+                  <>
+                    <button
+                      onClick={handleUpdate}
+                      className="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={() => {
+                        setForm({
+                          resi: packet!.resi,
+                          customer_name: packet!.customer_name,
+                          address: packet!.address,
+                          order: packet!.order,
+                        });
+                        setIsEditing(false);
+                      }}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                  </>
                 ) : (
-                  <p>{packet?.[field as keyof Packet]}</p>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Edit
+                  </button>
                 )}
               </div>
-            ))}
 
-            <div className="flex justify-between pt-0 pb-6">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleUpdate}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                  >
-                    Simpan Perubahan
-                  </button>
-                  <button
-                    onClick={() => {
-                      setForm({
-                        resi: packet!.resi,
-                        customer_name: packet!.customer_name,
-                        address: packet!.address,
-                        order: packet!.order,
-                      });
-                      setIsEditing(false);
-                    }}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
-                  >
-                    Batal
-                  </button>
-                </>
-              ) : (
+              <div className="space-y-4">
                 <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                  onClick={() => handleRequest(() => turnOn(packet!.resi), "Alarm is turned on 🔊")}
+                  className="w-full border border-green-700 text-green-700 p-2 rounded-lg font-medium"
                 >
-                  Edit
+                  Turn On the Alarm
                 </button>
-              )}
+                <button
+                  onClick={() => handleRequest(() => turnOff(packet!.resi), "Alarm is turned off 🔕")}
+                  className="w-full border border-red-700 text-red-700 p-2 rounded-lg font-medium"
+                >
+                  Turn Off the Alarm
+                </button>
+                <button
+                  onClick={() => handleRequest(() => resetAlarm(packet!.resi), "Alarm has been reset 🔄")}
+                  className="w-full border border-gray-700 text-gray-700 p-2 rounded-lg font-medium"
+                >
+                  Reset Alarm
+                </button>
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => handleRequest(() => turnOn(packet!.resi), "Alarm dinyalakan 🔊")}
-                className="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg font-medium"
-              >
-                Nyalakan Alarm
-              </button>
-              <button
-                onClick={() => handleRequest(() => turnOff(packet!.resi), "Alarm dimatikan 🔕")}
-                className="w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg font-medium"
-              >
-                Matikan Alarm
-              </button>
-              <button
-                onClick={() => handleRequest(() => resetAlarm(packet!.resi), "Alarm di-reset 🔄")}
-                className="w-full bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg font-medium"
-              >
-                Reset Alarm
-              </button>
-
-              {/* Add Delete button */}
-              <button
-                onClick={handleDelete}
-                className="w-full bg-red-700 hover:bg-red-800 text-white p-2 rounded-lg font-medium mt-4"
-              >
-                Hapus Paket
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
+        <button
+          onClick={handleDelete}
+          disabled={isNavigating}
+          className="w-full border bg-red-700 hover:bg-red-600 text-white p-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Delete (Remove)
+        </button>
       </div>
     </Layout>
   );

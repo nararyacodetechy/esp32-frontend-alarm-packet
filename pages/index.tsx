@@ -42,10 +42,10 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-6xl mx-auto text-black">
+      <div className="bg-white pt-20 pb-16 w-full max-w-6xl mx-auto text-black">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold">Dashboard Paket</h1>
-          <div className="mt-2 text-lg">Total Paket: {totalPackets}</div>
+          <h1 className="text-2xl font-bold">Dashboard Packet</h1>
+          <div className="mt-2 text-lg">Total Packet: {totalPackets}</div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-3 justify-between mb-6">
@@ -53,9 +53,9 @@ export default function Dashboard() {
           <div className="w-full md:w-1/4">
             <button
               onClick={handleAddPacket}
-              className="bg-blue-500 w-full p-3 hover:bg-blue-600 text-white rounded-lg text-sm"
+              className="bg-gray-800 w-full p-3 hover:bg-gray-800 text-white rounded-lg text-sm"
             >
-              Tambah Paket
+              Add New Packet
             </button>
           </div>
 
@@ -65,7 +65,7 @@ export default function Dashboard() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari Paket (Nomor Resi / Pesanan)"
+              placeholder="Search Packet (Receipt Number / Order)"
               className="w-full border p-2.5 border-gray-300 rounded-xl text-black"
             />
           </div>
@@ -78,16 +78,16 @@ export default function Dashboard() {
               key={packet.id}
               className="bg-white p-4 rounded-xl shadow-md border border-gray-200"
             >
-              <h3 className="text-xl font-semibold">{packet.resi}</h3>
-              <p className="mt-2 text-gray-700">Pesanan: {packet.order}</p>
-              <p className="mt-1 text-gray-500 text-sm">Nama: {packet.customer_name}</p>
-              <p className="mt-1 text-gray-500 text-sm">Alamat: {packet.address}</p>
+              <h3 className="text-xl font-semibold">Recpt: {packet.resi}</h3>
+              <p className="mt-2 text-gray-700">Orders: {packet.order}</p>
+              <p className="mt-1 text-gray-500 text-sm">Customer Name: {packet.customer_name}</p>
+              <p className="mt-1 text-gray-500 text-sm">Address: {packet.address}</p>
               <p className="mt-2 text-gray-600">Status: {packet.status}</p>
               <button
                 onClick={() => handleViewDetail(packet.resi)}
-                className="mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 w-full rounded-lg text-sm"
+                className="mt-4 border border-gray-700 text-black px-4 py-2 w-full rounded-lg text-sm"
               >
-                Lihat Detail
+                See Details
               </button>
             </div>
           ))}

@@ -12,35 +12,33 @@ export default function WifiSettingsPage() {
   };
 
   useEffect(() => {
-    // Simulasi pengecekan koneksi
-    // Gantilah ini dengan real check jika kamu punya API atau metode deteksi sebenarnya
     const connected = localStorage.getItem("wifiConnected") === "true";
     setIsConnected(connected);
   }, []);
 
   return (
     <Layout>
-      <div className="w-full max-w-xl mx-auto px-4 py-6 text-black">
+      <div className="w-full max-w-xl mx-auto py-20 text-black">
         <div className="flex items-center mb-6 justify-between">
           <div className="flex items-center">
             <button onClick={handleBack} className="mr-4" aria-label="Kembali">
-              <ArrowLeft className="w-6 h-6 text-blue-600" />
+              <ArrowLeft className="w-6 h-6 text-gray-700" />
             </button>
-            <h2 className="text-xl font-semibold text-gray-800">Pengaturan WiFi</h2>
+            <h2 className="text-lg font-semibold text-gray-700">WiFi Settings</h2>
           </div>
           <span
             className={`text-sm px-3 py-1 rounded-full ${
               isConnected ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             }`}
           >
-            {isConnected ? "Terhubung" : "Belum Terhubung"}
+            {isConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
 
-        <form className="bg-white rounded-xl shadow p-6 space-y-4 text-black">
+        <form className="bg-white space-y-4 text-black">
           <div>
             <label htmlFor="ssid" className="block font-medium text-sm mb-1">
-              Nama Jaringan (SSID)
+              Network Name (SSID)
             </label>
             <input
               id="ssid"
@@ -52,7 +50,7 @@ export default function WifiSettingsPage() {
 
           <div>
             <label htmlFor="password" className="block font-medium text-sm mb-1">
-              Kata Sandi WiFi
+              WiFi Password
             </label>
             <input
               id="password"
@@ -64,9 +62,9 @@ export default function WifiSettingsPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold"
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg font-semibold"
           >
-            Simpan Pengaturan
+            Try to Connect
           </button>
         </form>
       </div>

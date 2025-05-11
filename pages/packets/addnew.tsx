@@ -2,7 +2,7 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { useRouter } from "next/router";
 import { ArrowLeft } from "lucide-react";
-import { toast, Toaster } from "react-hot-toast"; // ✅ Tambahkan ini
+import { toast, Toaster } from "react-hot-toast";
 import { createPacket } from "@/lib/packetService";
 
 export default function AddNewPacket() {
@@ -12,9 +12,11 @@ export default function AddNewPacket() {
   const [address, setAddress] = useState("");
   const [order, setOrder] = useState("");
   const [error, setError] = useState("");
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // ✅ Cegah double submit
 
     if (!resi || !customerName || !address || !order) {
       setError("Semua kolom harus diisi");
@@ -22,18 +24,23 @@ export default function AddNewPacket() {
     }
 
     try {
+      setIsSubmitting(true);
       await createPacket({
         resi,
         customer_name: customerName,
         address,
         order,
       });
-
+    
       toast.success("Paket berhasil ditambahkan!");
-      setTimeout(() => router.push("/"), 1500); // delay untuk memberi waktu toast muncul
+    
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
     } catch (err) {
       toast.error("Gagal menambahkan paket.");
-    }
+      setIsSubmitting(false); 
+    }    
   };
 
   const handleBack = () => {
@@ -42,74 +49,83 @@ export default function AddNewPacket() {
 
   return (
     <Layout>
-      <div className="w-full max-w-lg mx-auto">
-        {/* ✅ Toaster untuk menampilkan notifikasi */}
+      <div className="w-full max-w-lg mx-auto h-[100vh] flex flex-col">
         <Toaster position="top-right" reverseOrder={false} />
 
-        <div className="flex items-center mb-6 justify-between">
-          <div className="flex items-center">
-            <button onClick={handleBack} className="mr-4" aria-label="Kembali">
-              <ArrowLeft className="w-6 h-6 text-blue-600" />
-            </button>
-            <h2 className="text-xl font-semibold text-gray-800">Tambah Paket pada Alat</h2>
+        {/* Header Sticky */}
+        <div className="sticky top-0 bg-white z-10 pt-20 pb-4">
+          <div className="flex items-center mb-2 justify-between">
+            <div className="flex items-center">
+              <button onClick={handleBack} className="mr-4" aria-label="Kembali">
+                <ArrowLeft className="w-6 h-6 text-gray-700" />
+              </button>
+              <h2 className="text-lg font-semibold text-gray-700">Add New Packet</h2>
+            </div>
           </div>
+
+          {error && <div className="text-red-600 text-center">{error}</div>}
         </div>
 
-        {error && <div className="text-red-600 text-center mb-4">{error}</div>}
+        {/* Scrollable Body */}
+        <div className="overflow-y-auto pb-16">
+          <form onSubmit={handleSubmit} className="space-y-4 bg-white text-black">
+            <div>
+              <label className="block font-medium mb-2">Receipt Number</label>
+              <input
+                type="text"
+                value={resi}
+                onChange={(e) => setResi(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                placeholder="Add Unique Receipt Number"
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-2xl shadow-lg text-black">
-          <div>
-            <label className="block font-medium mb-2">Nomor Resi</label>
-            <input
-              type="text"
-              value={resi}
-              onChange={(e) => setResi(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              placeholder="Nomor Resi"
-            />
-          </div>
+            <div>
+              <label className="block font-medium mb-2">Customer Name</label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                placeholder="Add New Customer Name"
+              />
+            </div>
 
-          <div>
-            <label className="block font-medium mb-2">Nama Pelanggan</label>
-            <input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              placeholder="Nama Pelanggan"
-            />
-          </div>
+            <div>
+              <label className="block font-medium mb-2">Address</label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                placeholder="Add Customer Address"
+              />
+            </div>
 
-          <div>
-            <label className="block font-medium mb-2">Alamat</label>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              placeholder="Alamat"
-            />
-          </div>
+            <div>
+              <label className="block font-medium mb-2">Orders</label>
+              <input
+                type="text"
+                value={order}
+                onChange={(e) => setOrder(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                placeholder="Add Customer Orders"
+              />
+            </div>
 
-          <div>
-            <label className="block font-medium mb-2">Pesanan</label>
-            <input
-              type="text"
-              value={order}
-              onChange={(e) => setOrder(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              placeholder="Pesanan"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg"
-          >
-            Simpan Paket
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full text-white py-3 rounded-lg ${
+                isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-gray-500 hover:bg-gray-400"
+              }`}
+            >
+              {isSubmitting ? "Saving..." : "Add New Packet"}
+            </button>
+          </form>
+        </div>
       </div>
     </Layout>
+
   );
 }
