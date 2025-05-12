@@ -56,6 +56,7 @@ export const updatePacket = async (
     customer_name: string;
     address: string;
     order: string;
+    device_id?: string | null; // Add the device_id field as optional
   }
 ) => {
   const res = await fetch(`${API_URL}/packets/${id}`, {
@@ -80,3 +81,26 @@ export async function deletePacket(id: number) {
 
   return res;
 }
+
+export const connectDevice = async (resi: string, device_id: string) => {
+  const res = await fetch(`${API_URL}/packets/${resi}/connect`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ device_id }),
+  });
+
+  if (!res.ok) throw new Error("Gagal menghubungkan device");
+
+  return res.json();
+};
+
+export const disconnectDevice = async (resi: string) => {
+  const res = await fetch(`${API_URL}/packets/${resi}/disconnect`, {
+    method: "PUT",
+  });
+
+  if (!res.ok) throw new Error("Gagal memutuskan device");
+
+  return res.json();
+};
+
