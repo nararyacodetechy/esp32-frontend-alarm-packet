@@ -40,7 +40,7 @@ const MqttConnectPage = () => {
     setConnecting(true);
     setLogs((prev) => [...prev, "🔄 Connecting to MQTT broker..."]);
 
-    const mqttClient = mqtt.connect("ws://broker.emqx.io:8083/mqtt");
+    const mqttClient = mqtt.connect("wss://broker.emqx.io:8084/mqtt");
 
     mqttClient.on("connect", () => {
       setLogs((prev) => [...prev, "✅ Connected to MQTT broker"]);
