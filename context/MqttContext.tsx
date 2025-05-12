@@ -23,7 +23,7 @@ export const MqttProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const mqttClient = mqtt.connect("ws://broker.emqx.io:8083/mqtt");
+    const mqttClient = mqtt.connect("wss://broker.emqx.io:8084/mqtt");
 
     mqttClient.on("connect", () => {
       console.log("✅ Terhubung ke broker MQTT");
